@@ -64,7 +64,7 @@ class Component:
             },
         }
 
-    async def _fetch_copyrights_for_origins(self, session, origins_list_url, headers, ssl, conf):
+    async def _fetch_copyrights_for_origins(self, session, origins_list_url, headers, ssl, conf, defined_origin_urls=None):
         async with session.get(origins_list_url, headers=headers['origins'], ssl=ssl) as resp:
             origins_data = await resp.json()
 
@@ -74,6 +74,8 @@ class Component:
         for origin_item in items:
             href = origin_item.get('_meta', {}).get('href', '')
             if not href:
+                continue
+            if defined_origin_urls and href.rstrip('/') in defined_origin_urls:
                 continue
             copyright_url = href.rstrip('/') + '/copyrights'
             async with session.get(copyright_url, headers=headers['copyrights'], ssl=ssl) as resp:
@@ -89,13 +91,18 @@ class Component:
         headers = self._make_headers(token)
         all_copyrights = []
 
+        defined_origin_urls = {
+            selected_origin['origin'].rstrip('/')
+            for selected_origin in self.data.get('origins', [])
+        }
+
         try:
             for selected_origin in self.data.get('origins', []):
                 origin_url = selected_origin['origin'].rstrip('/')
                 origins_list_url = origin_url.rsplit('/', 1)[0] + '?limit=100'
 
                 origin_copyrights = await self._fetch_copyrights_for_origins(
-                    session, origins_list_url, headers, ssl, conf
+                    session, origins_list_url, headers, ssl, conf, defined_origin_urls
                 )
 
                 for text in origin_copyrights:

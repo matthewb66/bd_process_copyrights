@@ -222,8 +222,8 @@ class BOM:
         phase2_compids_with_copyrights = {comp_id for comp_id, copyrights in phase2_data.items() if len(copyrights) > 0}
         phase2_compids_without_copyrights = {comp_id for comp_id, copyrights in phase2_data.items() if len(copyrights) == 0}
 
-        conf.logger.info(f"  Found {len(phase2_compids_with_copyrights)} components with copyrights in alternate origins")
-        conf.summary_text.append(f"- {len(phase2_compids_with_copyrights)} components with copyrights in alternate origins")
+        conf.logger.info(f"  Found {len(phase2_compids_with_copyrights)} components with new copyrights in alternate origins")
+        conf.summary_text.append(f"- {len(phase2_compids_with_copyrights)} components with new copyrights in alternate origins")
 
         # Phase 3: get copyrights from project source trees via file-level string search matches
         phase3_data = {}
@@ -240,13 +240,23 @@ class BOM:
 
             phase3_compids_with_copyrights = {comp_id for comp_id, copyrights in phase3_data.items() if len(copyrights) > 0}
 
-            conf.logger.info(f"  Found {len(phase3_compids_with_copyrights)} components with copyrights in local copyright scans")
+            conf.logger.info(f"  Found {len(phase3_compids_with_copyrights)} components with new copyrights in local copyright scans")
             conf.logger.info("")
             conf.summary_text.append(
-                f"- {len(phase3_compids_with_copyrights)} components with local scan copyrights")
+                f"- {len(phase3_compids_with_copyrights)} components with new local scan copyrights")
         else:
             phase3_compids_with_copyrights = set()
             conf.summary_text.append(f"- skipped processing local scan copyrights")
+
+        if conf.all_copyrights and conf.update_copyrights:
+            all_modified_ids = phase2_compids_with_copyrights | phase3_compids_with_copyrights
+            combined_for_count = {
+                comp_id: list(dict.fromkeys(phase2_data.get(comp_id, []) + phase3_data.get(comp_id, [])))
+                for comp_id in all_modified_ids
+            }
+            total_new_copyrights = sum(len(v) for v in combined_for_count.values())
+            conf.summary_text.append(f"- {len(all_modified_ids)} components modified with new copyrights")
+            conf.summary_text.append(f"- {total_new_copyrights} new copyrights created")
 
         if conf.update_copyrights:
             update_comp_ids = set(phase2_compids_with_copyrights) | set(phase3_compids_with_copyrights)
