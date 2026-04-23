@@ -1,5 +1,5 @@
-from ComponentClass import Component
-from ConfigClass import Config
+from .ComponentClass import Component
+from .ConfigClass import Config
 # from BOMClass import BOM
 # import global_values
 # import logging

@@ -1,6 +1,6 @@
-from ComponentListClass import ComponentList
-from ComponentClass import Component
-from ConfigClass import Config
+from .ComponentListClass import ComponentList
+from .ComponentClass import Component
+from .ConfigClass import Config
 from blackduck import Client
 import sys
 import asyncio

@@ -1,4 +1,4 @@
-from ConfigClass import Config
+from .ConfigClass import Config
 
 
 class Component:

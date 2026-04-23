@@ -3,12 +3,12 @@ requires = ["setuptools>=67.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bd_process_copyrights",
-version = "1.0"
+name = "bd_process_copyrights"
+version = "1.0.1"
 authors = [
   { name="Matthew Brady", email="mbrad@blackduck.com" },
 ]
-description = "bd_process_copyrights - identify components without copyrights and populate copyrights from other origins or from local copyright search",
+description = "bd_process_copyrights - identify components without copyrights and populate copyrights from other origins or from local copyright search"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [

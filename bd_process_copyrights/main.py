@@ -1,8 +1,8 @@
 # from . import global_values
-from BOMClass import BOM
+from .BOMClass import BOM
 # from . import config
 # from KernelSourceClass import KernelSource
-from ConfigClass import Config
+from .ConfigClass import Config
 import sys
 
 
@@ -10,7 +10,7 @@ def main():
     conf = Config()
     conf.get_cli_args()
 
-    conf.logger.info(f"BLACK DUCK COPYRIGHT PROCESSOR - v1.0")
+    conf.logger.info(f"BLACK DUCK COPYRIGHT PROCESSOR - v1.0.1")
     conf.logger.info(f"")
 
     process(conf)
