@@ -20,6 +20,7 @@ class Config:
         self.local_copyrights = True
         self.all_copyrights = False
         self.report = False
+        self.no_ui = False
         self.report_text = []
         self.summary_text = []
 
@@ -55,6 +56,11 @@ class Config:
             help="List all found copyrights per component, showing Phase 2 (origin scan) and Phase 3 (source tree) results separately",
             action='store_true'
         )
+        parser.add_argument(
+            "--no_ui",
+            help="Batch mode only – do not display interactive UI dialogs (all required options must be supplied via arguments or environment variables)",
+            action='store_true'
+        )
         # parser.add_argument("-k", "--kernel_source_file", help="Kernel source files list (REQUIRED)", default="")
         # parser.add_argument("--folders", help="Kernel Source file only contains folders to be used to map vulns",
         #                     action='store_true')
@@ -76,34 +82,39 @@ class Config:
             self.logger.debug(f"--{arg}={getattr(args, arg)}")
         self.logger.debug('')
     
+        self.no_ui = args.no_ui
+
         url = os.environ.get('BLACKDUCK_URL')
         if args.blackduck_url != '':
             self.bd_url = args.blackduck_url
         elif url is not None:
             self.bd_url = url
-        else:
-            self.logger.error("Black Duck URL not specified")
-            terminate = True
-    
-        if args.project != "" and args.version != "":
+
+        if args.project != "":
             self.bd_project = args.project
+        if args.version != "":
             self.bd_version = args.version
-        else:
-            self.logger.error("Black Duck project/version not specified")
-            terminate = True
-    
+
         api = os.environ.get('BLACKDUCK_API_TOKEN')
         if args.blackduck_api_token != '':
             self.bd_api = args.blackduck_api_token
         elif api is not None:
             self.bd_api = api
-        else:
-            self.logger.error("Black Duck API Token not specified")
-            terminate = True
-    
+
         trustcert = os.environ.get('BLACKDUCK_TRUST_CERT')
         if trustcert == 'true' or args.blackduck_trust_cert:
             self.bd_trustcert = True
+
+        if self.no_ui:
+            if not self.bd_url:
+                self.logger.error("Black Duck URL not specified")
+                terminate = True
+            if not self.bd_api:
+                self.logger.error("Black Duck API Token not specified")
+                terminate = True
+            if not self.bd_project or not self.bd_version:
+                self.logger.error("Black Duck project/version not specified")
+                terminate = True
 
         self.update_copyrights = args.update_copyrights
         self.local_copyrights = not args.skip_local_copyrights

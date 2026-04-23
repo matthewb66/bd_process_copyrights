@@ -1,4 +1,4 @@
-# bd-copyrights
+# bd-process-copyrights v1.0.1
 
 A tool to find and optionally populate missing copyright statements for components in a [Black Duck](https://www.blackducksoftware.com/) Bill of Materials (BOM).
 
@@ -37,6 +37,7 @@ blackduck>=1.1.3
 requests
 aiohttp
 asyncio
+PyQt6
 ```
 
 Install dependencies:
@@ -50,10 +51,21 @@ pip install .
 ## Usage
 
 ```
-python bd_kernel_vulns/main.py [options]
+python run.py [options]
 ```
 
-### Required arguments
+### Interactive mode (default)
+
+When the tool is run without supplying all required connection or project details, interactive PyQt6 dialogs are displayed to collect the missing values:
+
+1. **Connection dialog** — shown when `--blackduck_url` / `BLACKDUCK_URL` or `--blackduck_api_token` / `BLACKDUCK_API_TOKEN` are not provided. Prompts for the Black Duck server URL and API token (the token field is masked). Any values already resolved from CLI arguments or environment variables are pre-populated.
+2. **Project / Version dialog** — shown when `-p` / `--project` or `-v` / `--version` are not provided. Displays a filterable list of projects and, after a project is selected, a filterable list of versions. If only the version is missing (project was supplied on the CLI), the project list is skipped.
+
+Cancelling either dialog exits the tool without making any changes.
+
+To disable interactive mode entirely, pass `--no_ui` (see below).
+
+### Arguments
 
 | Argument | Environment variable | Description |
 |---|---|---|
@@ -62,12 +74,13 @@ python bd_kernel_vulns/main.py [options]
 | `-p PROJECT` / `--project PROJECT` | — | Black Duck project name |
 | `-v VERSION` / `--version VERSION` | — | Black Duck project version name |
 
-CLI arguments take precedence over environment variables.
+CLI arguments take precedence over environment variables. When any of the above are omitted and `--no_ui` is not set, the interactive dialogs will prompt for the missing values.
 
 ### Optional arguments
 
 | Argument                  | Description                                                                     |
 |---------------------------|---------------------------------------------------------------------------------|
+| `--no_ui`                 | Batch mode — disable all interactive UI dialogs; all required options must be supplied via arguments or environment variables |
 | `--blackduck_trust_cert`  | Disable TLS certificate verification (also set via `BLACKDUCK_TRUST_CERT=true`) |
 | `--all_copyrights`        | Process all components in Phases 2 and 3, not just those with zero existing copyrights |
 | `--update_copyrights`     | POST discovered copyrights back to Black Duck (default: read-only/dry run)      |
@@ -80,9 +93,24 @@ CLI arguments take precedence over environment variables.
 
 ## Examples
 
-**Dry run — find missing copyrights without writing anything back:**
+**Fully interactive — launch with no arguments to be prompted for everything:**
 ```bash
-python bd_kernel_vulns/main.py \
+python run.py
+```
+The connection dialog will ask for the server URL and API token, then the project/version dialog will let you browse and filter.
+
+**Partially interactive — supply the URL and token, pick the project/version in the UI:**
+```bash
+export BLACKDUCK_URL=https://my-blackduck-server.example.com
+export BLACKDUCK_API_TOKEN=<token>
+
+python run.py
+```
+
+**Batch mode (no UI) — all values on the command line:**
+```bash
+python run.py \
+  --no_ui \
   --blackduck_url https://my-blackduck-server.example.com \
   --blackduck_api_token <token> \
   -p "My Project" \
@@ -91,7 +119,7 @@ python bd_kernel_vulns/main.py \
 
 **Update copyrights in Black Duck:**
 ```bash
-python bd_kernel_vulns/main.py \
+python run.py \
   --blackduck_url https://my-blackduck-server.example.com \
   --blackduck_api_token <token> \
   -p "My Project" \
@@ -101,7 +129,7 @@ python bd_kernel_vulns/main.py \
 
 **Process all components (not just those missing copyrights) and update Black Duck:**
 ```bash
-python bd_kernel_vulns/main.py \
+python run.py \
   --blackduck_url https://my-blackduck-server.example.com \
   --blackduck_api_token <token> \
   -p "My Project" \
@@ -115,7 +143,7 @@ python bd_kernel_vulns/main.py \
 export BLACKDUCK_URL=https://my-blackduck-server.example.com
 export BLACKDUCK_API_TOKEN=<token>
 
-python bd_kernel_vulns/main.py \
+python run.py \
   -p "My Project" \
   -v "1.0" \
   --skip_local_copyrights \
@@ -124,7 +152,7 @@ python bd_kernel_vulns/main.py \
 
 **Write logs to a file:**
 ```bash
-python bd_kernel_vulns/main.py \
+python run.py \
   -p "My Project" \
   -v "1.0" \
   --logfile run.log \

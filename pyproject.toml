@@ -20,7 +20,8 @@ dependencies = [
     "blackduck>=1.1.3",
     "requests",
     "aiohttp",
-    "asyncio"
+    "asyncio",
+    "PyQt6"
 ]
 
 [project.urls]
