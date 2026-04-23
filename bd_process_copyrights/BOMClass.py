@@ -2,6 +2,7 @@ from .ComponentListClass import ComponentList
 from .ComponentClass import Component
 from .ConfigClass import Config
 from blackduck import Client
+import logging
 import sys
 import asyncio
 import platform
@@ -9,6 +10,10 @@ import platform
 
 class BOM:
     def __init__(self, conf):
+        # Suppress the blackduck library's noisy tracebacks during auth
+        bd_auth_logger = logging.getLogger('blackduck.Authentication')
+        prev_level = bd_auth_logger.level
+        bd_auth_logger.setLevel(logging.CRITICAL)
         try:
             self.complist = ComponentList()
             self.bd = Client(
@@ -33,9 +38,11 @@ class BOM:
                 compclass = Component(comp['componentName'], comp['componentVersionName'], comp)
                 self.complist.add(compclass)
 
-        except ValueError as v:
-            conf.logger.error(v)
-            sys.exit(-1)
+        except (ValueError, RuntimeError):
+            conf.logger.error("Failed to connect to Black Duck server – check the URL and API token")
+            sys.exit(1)
+        finally:
+            bd_auth_logger.setLevel(prev_level)
         return
 
     def get_paginated_data(self, url, accept_hdr):
